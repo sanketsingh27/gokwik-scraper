@@ -16,6 +16,6 @@ app.post("/product", async (req, res) => {
 
 app.listen(port, async () => {
   const productData = await scrapeProductData();
-  console.log(JSON.stringify(productData, 2, null));
+  console.log(JSON.stringify(productData, null, 2));
   console.log("Server is up on port " + port);
 });
