@@ -8,53 +8,54 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
     defaultViewport: false,
     args: ["--disable-features=site-per-process"],
   });
-  const page = await browser.newPage();
 
-  // Navigate to the product page
-  await page.goto(productUrl);
+  await getAmazonData(browser, "SPF 50 Glow Sunscreen");
+  //   const page = await browser.newPage();
 
-  const productTitle = await page.$eval(".product_title", (el) =>
-    el.textContent.split("\n")[1].trim()
-  );
-  console.log("Product Title:", productTitle);
+  //   // Navigate to the product page
+  //   await page.goto(productUrl);
+
+  // todo : uncomment
+  //   const productTitle = await page.$eval(".product_title", (el) =>
+  //     el.textContent.split("\n")[1].trim()
+  //   );
+
   // TO DO: we will find price too
 
   //   const { amazonPrice, couponn } = await getAmazonData(browser, productTitle);
-  await getAmazonData(browser, productTitle);
 
   //   await browser.close();
   //   return productData;
 };
 
 async function getAmazonData(browser, title) {
+  console.log("Inside getAmazonData ", title);
   const page = await browser.newPage();
 
+  const SESRCH_TERM = `foxtale ${title}`;
+  const SEARCH_TERM_ARRAY = SESRCH_TERM.toLowerCase().split(" ");
   // Navigate to Amazon.in
-  await page.goto(`https://www.amazon.in/s?k=foxtale+${title}`);
+  await page.goto(`https://www.amazon.in/s?k=${SESRCH_TERM}`);
 
-  // Part 1: Select all elements with data-component-type="s-search-result"
-  const searchResults = await page.$$eval(
-    'div[data-component-type="s-search-result"]',
-    (results) => results
-  );
+  const searchResults = await page.$$('div[data-component-type="s-search-result"]');
 
-  console.log("searchResults = ", searchResults);
-
-  // Part 2: Find element which contains 'foxtale and title '
-  const elementToClick = searchResults.find(async (result) => {
-    const elementTitle = await page.evaluate((html) => {
-      const temp = document.createElement("div");
-      temp.innerHTML = html;
-      const spanElement = temp.querySelector("h2 > a > span");
-      return spanElement ? spanElement.textContent : "";
+  console.log("Search Term ", SEARCH_TERM_ARRAY);
+  for (let index = 0; index < searchResults.length; index++) {
+    const result = searchResults[index];
+    const { title, dataIndex } = await page.evaluate((el) => {
+      const spanElement = el.querySelector("h2 > a > span");
+      const title = spanElement ? spanElement.textContent.toLowerCase() : "";
+      const dataIndex = el.getAttribute("data-index");
+      return { title, dataIndex };
     }, result);
 
-    return elementTitle.includes("foxtale") && elementTitle.includes(title);
-  });
-
-  console.log("ELEMENT to click =  = ", elementToClick);
-
-  await elementToClick.click();
+    if (SEARCH_TERM_ARRAY.every((term) => title.includes(term))) {
+      const clickSelector = `div[data-index="${dataIndex}"]`;
+      console.log({ clickSelector });
+      await page.click(clickSelector);
+      break;
+    }
+  }
 
   //   await page.close();
 }
