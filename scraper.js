@@ -53,44 +53,49 @@ async function getAmazonData(browser, title) {
   const page = await browser.newPage();
 
   // Navigate to Amazon.in
-  await page.goto("https://www.amazon.in");
+  await page.goto(`https://www.amazon.com/s?k=foxtale+${title}`);
 
   await page.setDefaultNavigationTimeout(0);
 
   // Type the title into the search input and submit the form
-  await page.type("#twotabsearchtextbox", `foxtale ${title}`);
+  //   await page.type("#twotabsearchtextbox", `foxtale ${title}`);
 
   // click the search btn and wait for the result
-  const promiseAll = await Promise.all([
-    page.click("#nav-search-submit-button"),
-    // page.waitForNavigation({ waitUntil: "networkidle0" }),
-  ]);
+  //    await Promise.all([
+  //     page.click("#nav-search-submit-button"),
+  //      page.waitForNavigation({ waitUntil: "networkidle0" }),
+  //   ]);
 
-  console.log("PROMISE value = ", promiseAll);
+  //  const searchResults = await page.$$(".s-result-item");
 
-  const searchResults = await page.$$(".s-result-item");
-
-  const itemToClick = searchResults.find(async (el) => {
+  console.log("SEARCH RESULT ", searchResults);
+  let elToClick = null;
+  for (let i = 0; i < searchResults.length; i++) {
+    const el = searchResults[i];
     try {
       title = await page.evaluate(
-        (el) => el.querySelector("h2 > a > span").textContent
+        (el) => el.querySelector("h2 > a > span").textContent,
+        (div) => div
       );
-      console.log(title);
-      if (title.indexof("foxtale") && title.indexof(title)) return el;
+      console.log("loop title = ", title);
+      if (title.indexof("foxtale") && title.indexof(title)) {
+        elToClick = el;
+        return;
+      }
     } catch (err) {
       console.log("no title found for this element");
       console.log(err);
     }
-  });
+  }
 
   console.log("ITEM TO CHECK = = = ", itemToClick);
 
   // Wait for the search results to load
-  const results = await page.$eval(
-    'div[data-component-type="s-search-result"]'
-  );
+  //   const results = await page.$eval(
+  //     'div[data-component-type="s-search-result"]'
+  //   );
 
-  console.log({ results });
+  //   console.log({ results });
   // Select the div element with the specified attributes
   //   const resultDiv = await page.$(
   //     'div[data-component-type="s-search-result"][data-index="7"]'
@@ -112,8 +117,8 @@ async function getAmazonData(browser, title) {
   //     (await newPage.$eval(".a-offscreen", (el) => el.textContent)) ?? // offer price
   //     (await newPage.$eval(".a-price-whole", (el) => el.textContent)); // whole price
 
-  console.log("AMAZON PRICE = ", price);
-  return price;
+  //   console.log("AMAZON PRICE = ", price);
+  //   return price;
 }
 
 export default scrapeProductData;
