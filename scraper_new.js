@@ -9,7 +9,8 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
     args: ["--disable-features=site-per-process", "--start-maximized"],
   });
 
-  await getAmazonData(browser, "SPF 50 Glow Sunscreen");
+  //   await getAmazonData(browser, "SPF 50 Glow Sunscreen");
+  await getFlipkartData(browser, "SPF 70 Matte Finish Sunscreen");
   //   const page = await browser.newPage();
 
   //   // Navigate to the product page
@@ -29,6 +30,7 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
 };
 
 async function getAmazonData(browser, title) {
+  console.log(" ====== Amazon ====== ");
   console.log("🚀 ~ getAmazonData ~ title:", title);
   const page = await browser.newPage();
 
@@ -60,13 +62,13 @@ async function getAmazonData(browser, title) {
       break;
     }
   }
-  console.log(" ====== Amazon ====== ");
+
   const { price: amazonPrice, bankOffer: amazonBankOffer } = await amazonProductPage(
     productDetailPage
   );
-  console.log(" ====== Flipkart ====== ");
 
-  //   await page.close();
+  await page.close();
+  return { amazonPrice, amazonBankOffer };
 }
 
 async function amazonProductPage(page) {
@@ -107,6 +109,54 @@ async function extractBankOfferFromAmazon(page) {
     console.error("Error extracting price:", error);
     return "N/A";
   }
+}
+
+async function getFlipkartData(browser, title) {
+  console.log(" ====== Flipkart ====== ");
+  console.log("🚀 ~ getFlipkartData ~ title:", title);
+  const page = await browser.newPage();
+
+  const SESRCH_STRING = `foxtale ${title}&augment=false`;
+  const SEARCH_TERM_ARRAY = SESRCH_STRING.toLowerCase().split(" ");
+
+  // Navigate to Flipkart
+  await page.goto(`https://www.flipkart.com/search?q=${SESRCH_STRING}`);
+
+  const searchResults = await page.$$(".slAVV4");
+  console.log("🚀 ~ getFlipkartData ~ searchResults:", searchResults.length);
+
+  let productDetailPage;
+  for (let index = 0; index < searchResults.length; index++) {
+    const result = searchResults[index];
+    console.log("🚀 ~ getFlipkartData ~ Inside For ~ result:", result);
+
+    const { title, dataIndex } = await page.evaluate((el) => {
+      const title = el.querySelector(".wjcEIp").getAttribute("title").toLowerCase() || "";
+      const dataIndex = el.getAttribute("data-tkid"); // to target proper item for click
+      return { title, dataIndex };
+    }, result);
+    console.log("🚀 ~ { title, dataIndex }: of data = ", {
+      title,
+      dataIndex,
+    });
+
+    if (title.includes(foxtale)) {
+      const newPagePromise = getNewPageWhenLoaded(browser);
+
+      const clickSelector = `div[data-tkid="${dataIndex}"]`;
+      console.log("🚀 ~ getFlipkartData ~ clickSelector:", clickSelector);
+      page.click(clickSelector);
+
+      productDetailPage = await newPagePromise;
+      break;
+    }
+  }
+
+  //   const { price: amazonPrice, bankOffer: amazonBankOffer } = await amazonProductPage(
+  //     productDetailPage
+  //   );
+  //   await page.close();
+  //   return { amazonPrice, amazonBankOffer };
 }
 
 const getNewPageWhenLoaded = async (browser) => {
