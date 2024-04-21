@@ -6,7 +6,7 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: false,
-    args: ["--disable-features=site-per-process"],
+    args: ["--disable-features=site-per-process", "--start-maximized"],
   });
 
   await getAmazonData(browser, "SPF 50 Glow Sunscreen");
@@ -29,6 +29,7 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
 };
 
 async function getAmazonData(browser, title) {
+  console.log("🚀 ~ getAmazonData ~ title:", title);
   const page = await browser.newPage();
 
   const SESRCH_TERM = `foxtale ${title}`;
@@ -51,22 +52,32 @@ async function getAmazonData(browser, title) {
 
     if (SEARCH_TERM_ARRAY.every((term) => title.includes(term))) {
       const newPagePromise = getNewPageWhenLoaded(browser);
-      const clickSelector = `div[data-index="${dataIndex}"]`;
 
+      const clickSelector = `div[data-index="${dataIndex}"]`;
       page.click(clickSelector);
+
       productDetailPage = await newPagePromise;
       break;
     }
   }
-
-  const { price, coupon } = await productPage(productDetailPage);
+  console.log(" ====== Amazon ====== ");
+  const { price: amazonPrice, bankOffer: amazonBankOffer } = await amazonProductPage(
+    productDetailPage
+  );
+  console.log(" ====== Flipkart ====== ");
 
   //   await page.close();
 }
 
-async function productPage(page) {
-  console.log("product detail page = ", page);
+async function amazonProductPage(page) {
+  console.log("🚀 ~ amazonProductPage ~ page:", Object.keys(page).length > 0);
+
+  // run this in parallal
   const price = await extractPriceFromAmazon(page);
+  const bankOffer = await extractBankOfferFromAmazon(page);
+
+  console.log("🚀 ~ productPage ~  { price, bankOffer }:", { price, bankOffer });
+  return { price, bankOffer };
   //   TODO : scraping coupon
 }
 
@@ -76,6 +87,22 @@ async function extractPriceFromAmazon(page) {
     const priceElement = await page.$eval(".a-offscreen", (el) => el.textContent);
     console.log("🚀 ~ extractPriceFromAmazon ~ priceElement:", priceElement);
     return priceElement.trim();
+  } catch (error) {
+    console.error("Error extracting price:", error);
+    return "N/A";
+  }
+}
+
+async function extractBankOfferFromAmazon(page) {
+  try {
+    // Find the copupon element on the page
+    const bankOffer = await page.$eval(
+      "#itembox-InstantBankDiscount > span > div > span > span.a-truncate-full.a-offscreen",
+      (el) => el.textContent
+    );
+    console.log("🚀 ~ extractBankOfferFromAmazon ~ bankOffer:", bankOffer);
+
+    return bankOffer ? bankOffer.trim() : "N/A";
   } catch (error) {
     console.error("Error extracting price:", error);
     return "N/A";
