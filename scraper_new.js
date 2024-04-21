@@ -140,7 +140,7 @@ async function getFlipkartData(browser, title) {
       dataIndex,
     });
 
-    if (title.includes(foxtale)) {
+    if (title.includes("foxtale")) {
       const newPagePromise = getNewPageWhenLoaded(browser);
 
       const clickSelector = `div[data-tkid="${dataIndex}"]`;
@@ -152,12 +152,40 @@ async function getFlipkartData(browser, title) {
     }
   }
 
-  //   const { price: amazonPrice, bankOffer: amazonBankOffer } = await amazonProductPage(
-  //     productDetailPage
-  //   );
+  const { price: flipkartPrice, bankOffer: flipkartBankOffer } = await flipkartProductPage(
+    productDetailPage
+  );
+
   //   await page.close();
   //   return { amazonPrice, amazonBankOffer };
 }
+
+async function flipkartProductPage(page) {
+  console.log("🚀 ~ flipkartProductPage ~ page:", Object.keys(page).length > 0);
+
+  // run this in parallal
+  const price = await extractPriceFromFlipkart(page);
+  const bankOffer = await extractBankOfferFromFlipkart(page);
+
+  console.log("🚀 ~ productPage ~  { price, bankOffer }:", { price, bankOffer });
+  return { price, bankOffer };
+  //   TODO : scraping coupon
+}
+
+async function extractPriceFromFlipkart(page) {
+  try {
+    // Find the price element on the page
+    const price = await page.$eval("div.Nx9bqj.CxhGGd", (el) => el.textContent);
+    console.log("🚀 ~ extractPriceFromFlipkart ~ price:", price);
+
+    return price.trim();
+  } catch (error) {
+    console.error("Error extracting price:", error);
+    return "N/A";
+  }
+}
+
+async function extractBankOfferFromFlipkart() {}
 
 const getNewPageWhenLoaded = async (browser) => {
   return new Promise((x) =>
