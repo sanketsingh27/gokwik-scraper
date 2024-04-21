@@ -1,5 +1,5 @@
 import express from "express";
-import scrapeProductData from "./scraper_new.js";
+import scrapeProductData from "./scraper.js";
 
 const app = express();
 const port = process.env.PORT || 3001;
