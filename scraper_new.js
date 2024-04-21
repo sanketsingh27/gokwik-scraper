@@ -54,26 +54,32 @@ async function getAmazonData(browser, title) {
       const clickSelector = `div[data-index="${dataIndex}"]`;
 
       page.click(clickSelector);
-      const newPage = await newPagePromise;
-
-      const pageTitle = await newPage.title();
-      console.log("title :  = = = ", pageTitle);
-
+      productDetailPage = await newPagePromise;
       break;
     }
-
-    // const { price, coupon } = await productPage(productDetailPage);
   }
+
+  const { price, coupon } = await productPage(productDetailPage);
 
   //   await page.close();
 }
 
 async function productPage(page) {
   console.log("product detail page = ", page);
-  const pageTitle = await page.title();
-  console.log("product page titile = ", pageTitle);
+  const price = await extractPriceFromAmazon(page);
+  //   TODO : scraping coupon
+}
 
-  //   scraping o
+async function extractPriceFromAmazon(page) {
+  try {
+    // Find the price element on the page
+    const priceElement = await page.$eval(".a-offscreen", (el) => el.textContent);
+    console.log("🚀 ~ extractPriceFromAmazon ~ priceElement:", priceElement);
+    return priceElement.trim();
+  } catch (error) {
+    console.error("Error extracting price:", error);
+    return "N/A";
+  }
 }
 
 const getNewPageWhenLoaded = async (browser) => {
