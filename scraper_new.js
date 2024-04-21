@@ -185,7 +185,24 @@ async function extractPriceFromFlipkart(page) {
   }
 }
 
-async function extractBankOfferFromFlipkart() {}
+async function extractBankOfferFromFlipkart(page) {
+  try {
+    // Find the copupon element on the page
+    return await page.evaluate(() => {
+      const listItems = document.querySelectorAll(".kF1Ml8");
+      for (const item of listItems) {
+        const spans = item.querySelectorAll("span");
+        if (spans.length > 1 && spans[0].textContent.includes("Bank Offer")) {
+          return spans[1].textContent;
+        }
+      }
+      return "N/A"; // Return null if not found
+    });
+  } catch (error) {
+    console.error("Error extracting price:", error);
+    return "N/A";
+  }
+}
 
 const getNewPageWhenLoaded = async (browser) => {
   return new Promise((x) =>
