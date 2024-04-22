@@ -7,7 +7,6 @@ async function getFlipkartData(browser, title) {
   page.setDefaultTimeout(24 * 60 * 60 * 1000);
 
   const SESRCH_STRING = `foxtale ${title}&augment=false`;
-  const SEARCH_TERM_ARRAY = SESRCH_STRING.toLowerCase().split(" ");
 
   // Navigate to Flipkart
   await page.goto(`https://www.flipkart.com/search?q=${SESRCH_STRING}`);
@@ -42,16 +41,14 @@ async function getFlipkartData(browser, title) {
     }
   }
 
-  const { price: flipkartPrice, bankOffer: flipkartBankOffer } = await flipkartProductPage(
-    productDetailPage
-  );
+  const flipkartData = await flipkartProductPage(productDetailPage);
 
   await page.close();
-  return { flipkartPrice, flipkartBankOffer };
+  return flipkartData;
 }
 
 async function flipkartProductPage(page) {
-  console.log("🚀 ~ flipkartProductPage ~ page:", Object.keys(page).length > 0);
+  // console.log("🚀 ~ flipkartProductPage ~ page:", Object.keys(page).length > 0);
 
   // run this in parallal
   const price = await extractPriceFromFlipkart(page);

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Price Comparison</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Paste product URL to find the best</h1>
+    <input type="text" id="productUrl" placeholder="Enter product URL" />
+    <button onclick="fetchProductData()">Search</button>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+
+          <th>Payment Offer</th>
+        </tr>
+      </thead>
+      <tbody id="resultsTable"></tbody>
+    </table>
+
+    <script>
+      function fetchProductData() {
+        const searchkey = document.getElementById("productUrl").value;
+        // Make API call to fetch product data
+        // Replace this with your actual API endpoint
+        fetch("http://localhost:3001/api/product-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ searchkey }),
+        })
+          .then((response) => response.json())
+          .then((data) => populateTable(data))
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function populateTable(data) {
+        const tableBody = document.getElementById("resultsTable");
+        tableBody.innerHTML = "";
+
+        for (const entry of data) {
+          const row = document.createElement("tr");
+
+          const nameCell = document.createElement("td");
+          nameCell.textContent = entry.name;
+          row.appendChild(nameCell);
+
+          const priceCell = document.createElement("td");
+          priceCell.textContent = entry.price;
+          row.appendChild(priceCell);
+
+          //   const couponCell = document.createElement("td");
+          //   couponCell.textContent = entry.coupon;
+          //   row.appendChild(couponCell);
+
+          const paymentOfferCell = document.createElement("td");
+          paymentOfferCell.textContent = entry.paymentOffer;
+          row.appendChild(paymentOfferCell);
+
+          tableBody.appendChild(row);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -37,16 +37,14 @@ async function getAmazonData(browser, title) {
     }
   }
 
-  const { price: amazonPrice, bankOffer: amazonBankOffer } = await amazonProductPage(
-    productDetailPage
-  );
+  const amazonData = await amazonProductPage(productDetailPage);
 
   await page.close();
-  return { amazonPrice, amazonBankOffer };
+  return amazonData;
 }
 
 async function amazonProductPage(page) {
-  console.log("🚀 ~ amazonProductPage ~ page:", Object.keys(page).length > 0);
+  // console.log("🚀 ~ amazonProductPage ~ page:", Object.keys(page).length > 0);
 
   // run this in parallal
   const price = await extractPriceFromAmazon(page);

@@ -2,9 +2,7 @@ import puppeteer from "puppeteer";
 import getFlipkartData from "./flipkart_scraper.js";
 import getAmazonData from "./amazon_scraper.js";
 
-const DEFAULT_URL = "https://foxtale.in/collections/summer-essentials/products/glow-sunscreen";
-
-const scrapeProductData = async (productUrl = DEFAULT_URL) => {
+const scrapeProductData = async (productUrl) => {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: false,
@@ -18,20 +16,26 @@ const scrapeProductData = async (productUrl = DEFAULT_URL) => {
   await page.goto(productUrl);
 
   // get product title from foxtale.com
-  const { foxtalePrice, foxtaleTitle } = {
-    foxtalePrice: await getFoxtalePrice(page),
-    foxtaleTitle: await getFoxtaleTitle(page),
+  const foxtaleData = {
+    price: await getFoxtalePrice(page),
+    bankOffer: await getFoxtaleTitle(page),
   };
 
   // TO DO: we will find price too
 
-  const { amazonPrice, amazonBankOffer } = await getAmazonData(browser, foxtaleTitle);
-  const { flipkartPrice, flipkartBankOffer } = await getFlipkartData(browser, foxtaleTitle);
+  const amazonData = await getAmazonData(browser, foxtaleData.foxtaleTitle);
+  const flipkartData = await getFlipkartData(browser, foxtaleData.foxtaleTitle);
 
-  console.log("🚀 ~ scrapeProductData ~ getAmazonData:", { amazonPrice, amazonBankOffer });
-  console.log("🚀 ~ scrapeProductData ~ getFlipkartData:", { flipkartPrice, flipkartBankOffer });
+  console.log("🚀 ~ scrapeProductData ~ getAmazonData:", amazonData);
+  console.log("🚀 ~ scrapeProductData ~ getFlipkartData:", flipkartData);
 
   await browser.close();
+
+  return {
+    amazon: amazonData,
+    flipkart: flipkartData,
+    foxTale: foxtaleData,
+  };
 };
 
 async function getFoxtalePrice(page) {
