@@ -1,31 +1,40 @@
 import puppeteer from "puppeteer";
 import getFlipkartData from "./flipkart_scraper.js";
 import getAmazonData from "./amazon_scraper.js";
+import getFoxtaleData from "./foxtale_scraper.js";
+import { isValidHttpUrl } from "./utils.js";
 
-const scrapeProductData = async (productUrl) => {
+const scrapeProductData = async (searchkey) => {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: false,
     args: ["--disable-features=site-per-process", "--start-maximized"],
   });
 
-  const page = await browser.newPage();
-  page.setDefaultTimeout(24 * 60 * 60 * 1000);
+  const isProductUrl = isValidHttpUrl(searchkey);
 
-  // Navigate to the product page
-  await page.goto(productUrl);
+  let foxtaleData = null;
 
-  // get product title from foxtale.com
-  const foxtaleData = {
-    price: await getFoxtalePrice(page),
-    title: await getFoxtaleTitle(page),
-  };
+  if (!isProductUrl) {
+    foxtaleData = await getFoxtaleData(browser, searchkey);
+  } else {
+    // search key is url
+    const page = await browser.newPage();
+    page.setDefaultTimeout(24 * 60 * 60 * 1000);
 
-  // TO DO: we will find price too
+    await page.goto(searchkey);
+
+    foxtaleData = {
+      price: await getFoxtalePrice(page),
+      title: await getFoxtaleTitle(page),
+      bankOffer: "N/A",
+    };
+  }
 
   const amazonData = await getAmazonData(browser, foxtaleData.title);
   const flipkartData = await getFlipkartData(browser, foxtaleData.title);
 
+  console.log("🚀 ~ scrapeProductData ~ foxtaleData:", foxtaleData);
   console.log("🚀 ~ scrapeProductData ~ getAmazonData:", amazonData);
   console.log("🚀 ~ scrapeProductData ~ getFlipkartData:", flipkartData);
 

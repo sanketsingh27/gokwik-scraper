@@ -12,3 +12,12 @@ export const getNewPageWhenLoaded = async (browser) => {
     })
   );
 };
+
+export function isValidHttpUrl(string) {
+  try {
+    const newUrl = new URL(string);
+    return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
+}
