@@ -18,13 +18,13 @@ const scrapeProductData = async (productUrl) => {
   // get product title from foxtale.com
   const foxtaleData = {
     price: await getFoxtalePrice(page),
-    bankOffer: await getFoxtaleTitle(page),
+    title: await getFoxtaleTitle(page),
   };
 
   // TO DO: we will find price too
 
-  const amazonData = await getAmazonData(browser, foxtaleData.foxtaleTitle);
-  const flipkartData = await getFlipkartData(browser, foxtaleData.foxtaleTitle);
+  const amazonData = await getAmazonData(browser, foxtaleData.title);
+  const flipkartData = await getFlipkartData(browser, foxtaleData.title);
 
   console.log("🚀 ~ scrapeProductData ~ getAmazonData:", amazonData);
   console.log("🚀 ~ scrapeProductData ~ getFlipkartData:", flipkartData);
